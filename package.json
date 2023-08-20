@@ -7,14 +7,14 @@
     "dev": "ts-node main.ts"
   },
   "bin": {
-    "jonlyes-cli": "ts-node main.ts"
+    "analyze-cli": "ts-node main.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "boxen": "^7.1.1",
-    "chalk": "^5.3.0",
+    "boxen": "^5.1.2",
+    "chalk": "^4.0.0",
     "commander": "^11.0.0",
     "express": "^4.18.2",
     "ts-node": "^10.9.1"

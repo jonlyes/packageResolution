@@ -1,12 +1,20 @@
 import path from "path";
 import fs, { ReadStream } from "fs";
-import { LinksInfoItem, tmpObjType, categoriesItem } from "./type";
+import {
+  LinksInfoItem,
+  PackageJsonType,
+  IsVisitType,
+  DirectDependenciesType,
+  tmpObjType,
+  categoriesItem,
+  NodesInfoItem,
+} from "./type";
 
 let plainData: string = ""; // 存储流式读入的数据
-let packages: any; // 所有依赖包信息
-let conflictPackages: any = {}; // 冲突包信息
-let isVisit: any = {}; // 访问标记,用于处理循环依赖
-let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
+let packages: PackageJsonType; // 所有依赖包信息
+let conflictPackages: PackageJsonType; // 冲突包信息
+let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
+let linksInfo: LinksInfoItem[]; // 记录依赖关系
 let maxDepth: number = 999;
 let thisMaxDepth: number = -1;
 
@@ -35,7 +43,8 @@ function main(): Promise<string> {
       });
 
       // 提取 packages 空字符串对象中的依赖信息
-      let directDependencies: object = packages?.[""]?.["dependencies"];
+      let directDependencies: DirectDependenciesType =
+        packages?.[""]?.["dependencies"];
       let dependenciesArray: string[] = Object.keys(directDependencies);
 
       try {
@@ -61,7 +70,7 @@ function main(): Promise<string> {
   });
 }
 
-async function runAnalysis():Promise<void> {
+async function runAnalysis(): Promise<void> {
   try {
     const res = await main();
   } catch (err) {
@@ -76,9 +85,9 @@ async function runAnalysis():Promise<void> {
  * @returns {Promise<string>} - Promise，成功时返回成功消息，失败时返回错误
  * @throws {Error} - 如果写入文件时发生错误，则抛出错误
  */
-async function promiseWriteFile(
+async function promiseWriteFile<T>(
   fileName: string,
-  data: object
+  data: T | object
 ): Promise<string> {
   let url: string = path.join(__dirname, "data", `${fileName}.json`);
   return new Promise<string>((resolve, reject) => {
@@ -96,13 +105,13 @@ async function promiseWriteFile(
  * 递归分析依赖信息
  * @param {Array} keys - 包含直接依赖键名信息的数组
  */
-async function generateAnalysis(keys: string[]):Promise<void> {
-  let resObj: any = {};
+async function generateAnalysis(keys: string[]): Promise<void> {
+  let resObj: PackageJsonType = {};
   keys.forEach((item) => {
     isVisit = {};
     resObj[item] = dfs(item, item);
   });
-  await promiseWriteFile("dependency", resObj);
+  await promiseWriteFile<PackageJsonType>("dependency", resObj);
 }
 
 /**
@@ -178,18 +187,20 @@ function dfs(
  * 生成 Echarts 所需的 Nodes 与 Links 数据格式
  */
 async function generateNodeInfo(): Promise<void> {
-  let nodesInfo = Object.keys(packages).map((item) => {
-    let size = thisMaxDepth - packages[item].depth + 1 || 2;
-    if (item)
-      return {
-        name: item,
-        value: `@${packages[item].version}`,
-        category: packages[item].category || "alone",
-        symbolSize: Math.pow(1.414, size),
-      };
-  });
-  await promiseWriteFile("nodesInfo", nodesInfo.slice(1));
-  await promiseWriteFile("linksInfo", linksInfo);
+  let nodesInfo: (NodesInfoItem | undefined)[] = Object.keys(packages).map(
+    (item) => {
+      let size = thisMaxDepth - packages[item].depth + 1 || 2;
+      if (item)
+        return {
+          name: item,
+          value: `@${packages[item].version}`,
+          category: packages[item].category || "alone",
+          symbolSize: Math.pow(1.414, size),
+        };
+    }
+  );
+  await promiseWriteFile<NodesInfoItem[]>("nodesInfo", nodesInfo.slice(1));
+  await promiseWriteFile<LinksInfoItem[]>("linksInfo", linksInfo);
 }
 /**
  * 生成 Echarts 所需的 categories
@@ -201,7 +212,7 @@ async function generateCategories(keys: string[]): Promise<void> {
   });
   categories.push({ name: "alone" });
   categories.push({ name: "shared" });
-  await promiseWriteFile("categoriesInfo", categories);
+  await promiseWriteFile<categoriesItem[]>("categoriesInfo", categories);
 }
 
 /**
@@ -211,7 +222,7 @@ async function generateConflict(): Promise<void> {
   Object.keys(conflictPackages).forEach((item) => {
     conflictPackages[item].rootVersion = packages[item]?.version;
   });
-  await promiseWriteFile("conflict", conflictPackages);
+  await promiseWriteFile<PackageJsonType>("conflict", conflictPackages);
 }
 
 export { runAnalysis };

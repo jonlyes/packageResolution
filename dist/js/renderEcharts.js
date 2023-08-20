@@ -1,5 +1,12 @@
 var myChart = echarts.init(document.getElementById('main'), 'macarons');
 
+// 监听resize， 重新渲染echarts
+window.addEventListener('resize',(e)=>{
+    myChart.resize()
+})
+
+
+
 /**
  * 从不同的 URL 获取数据，并返回一个包含节点、链接和类别信息的对象。
  * @returns {Promise<Object>} 包含节点、链接和类别信息的对象。

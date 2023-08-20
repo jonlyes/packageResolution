@@ -9,10 +9,13 @@ import server from "./src/server";
 import { Server, IncomingMessage, ServerResponse } from "http";
 import { runAnalysis } from "./src/analysis";
 
+// 定义基本的url
 const baseUrl: string = path.join(__dirname, "src", "data");
 
+// 定义端口号
 let port: string = "5152";
 
+// 创建命令行参数对象
 const program: Command = new Command();
 program
   .command("analyze")
@@ -20,10 +23,12 @@ program
   .option("--depth [n]", "限制递归深度")
   .option("--json [file-path]", "将依赖关系以json格式导入指定路径中")
   .action(async (options): Promise<void> => {
+    // 获取深度
     const depth = options.depth || 0;
+    // 获取json文件路径
     const jsonFilePath = options.json;
     // // 执行依赖分析
-    await runAnalysis();
+    await runAnalysis(depth);
     // // 启动服务器
     const serverInstance: Server<
       typeof IncomingMessage,
@@ -46,6 +51,7 @@ program
     });
   });
 
+// 获取消息
 function getBeautifulMsg(): string {
   const message: string = `
     Serving!
@@ -64,4 +70,5 @@ function getBeautifulMsg(): string {
   return boxedMessage;
 }
 
+// 解析命令行参数
 program.parse(process.argv);

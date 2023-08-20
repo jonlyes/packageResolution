@@ -12,14 +12,14 @@ import {
 
 let plainData: string = ""; // 存储流式读入的数据
 let packages: PackageJsonType; // 所有依赖包信息
-let conflictPackages: PackageJsonType; // 冲突包信息
+let conflictPackages: PackageJsonType = {}; // 冲突包信息
 let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
-let linksInfo: LinksInfoItem[]; // 记录依赖关系
+let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
 let maxDepth: number = 999;
 let thisMaxDepth: number = -1;
 
 // 流式读取文件并处理
-function main(): Promise<string> {
+function main(depth: number): Promise<string> {
   plainData = "";
   const baseUrl: string = path.resolve(process.cwd(), "package-lock.json");
   const readStream: ReadStream = fs.createReadStream(baseUrl, {
@@ -52,7 +52,7 @@ function main(): Promise<string> {
         if (!fs.existsSync(url)) fs.mkdirSync(url);
 
         // 递归分析依赖
-        await generateAnalysis(dependenciesArray);
+        await generateAnalysis(dependenciesArray, depth);
         // 生成节点相关信息
         await generateNodeInfo();
         // 生成类别信息
@@ -70,9 +70,9 @@ function main(): Promise<string> {
   });
 }
 
-async function runAnalysis(): Promise<void> {
+async function runAnalysis(depth: number): Promise<void> {
   try {
-    const res = await main();
+    await main(depth);
   } catch (err) {
     console.error("处理文件时发生错误:", err);
   }
@@ -105,11 +105,11 @@ async function promiseWriteFile<T>(
  * 递归分析依赖信息
  * @param {Array} keys - 包含直接依赖键名信息的数组
  */
-async function generateAnalysis(keys: string[]): Promise<void> {
+async function generateAnalysis(keys: string[], depth: number): Promise<void> {
   let resObj: PackageJsonType = {};
   keys.forEach((item) => {
     isVisit = {};
-    resObj[item] = dfs(item, item);
+    resObj[item] = dfs(item, item, depth);
   });
   await promiseWriteFile<PackageJsonType>("dependency", resObj);
 }
@@ -124,7 +124,7 @@ async function generateAnalysis(keys: string[]): Promise<void> {
 function dfs(
   rootPackageName: string,
   nowPackageName: string,
-  depth: number = 0,
+  depth: number,
   prefix: string = "NotFound"
 ): { conflict: boolean } | tmpObjType {
   // 先查找前缀的node_modules目录中是否存在依赖

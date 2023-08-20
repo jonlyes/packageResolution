@@ -12,9 +12,9 @@ import {
 
 let plainData: string = ""; // 存储流式读入的数据
 let packages: PackageJsonType; // 所有依赖包信息
-let conflictPackages: PackageJsonType; // 冲突包信息
+let conflictPackages: PackageJsonType = {}; // 冲突包信息
 let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
-let linksInfo: LinksInfoItem[]; // 记录依赖关系
+let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
 let maxDepth: number = 999;
 let thisMaxDepth: number = -1;
 

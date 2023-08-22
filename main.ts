@@ -48,6 +48,11 @@ program
       > = server.listen(port, () => {
         console.log(getBeautifulMsg());
       });
+
+      exec(`start http://localhost:${port}`, (err) => {
+        if (err) { console.error('Failed to open:', err); return; }
+      })
+
       // 监听 Ctrl+C 退出事件
       process.on("SIGINT", () => {
         // 关闭express

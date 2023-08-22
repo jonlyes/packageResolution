@@ -15,11 +15,15 @@ let packages: PackageJsonType; // 所有依赖包信息
 let conflictPackages: PackageJsonType = {}; // 冲突包信息
 let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
 let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
-let maxDepth: number = 999;
 let thisMaxDepth: number = -1;
+var maxDepth: number = 9999;
+var saveUrl: string = 'default';
 
 // 流式读取文件并处理
-function main(depth: number): Promise<string> {
+function main(depth: number, jsonFilePath: string): Promise<string> {
+  // 设置初始信息
+  maxDepth = depth;
+  saveUrl = jsonFilePath;
   plainData = "";
   const baseUrl: string = path.resolve(process.cwd(), "package-lock.json");
   const readStream: ReadStream = fs.createReadStream(baseUrl, {
@@ -52,13 +56,15 @@ function main(depth: number): Promise<string> {
         if (!fs.existsSync(url)) fs.mkdirSync(url);
 
         // 递归分析依赖
-        await generateAnalysis(dependenciesArray, depth);
-        // 生成节点相关信息
-        await generateNodeInfo();
-        // 生成类别信息
-        await generateCategories(dependenciesArray);
-        // 记录依赖冲突信息
-        await generateConflict();
+        await generateAnalysis(dependenciesArray);
+        if (saveUrl === 'default') {
+          // 生成节点相关信息
+          await generateNodeInfo();
+          // 生成类别信息
+          await generateCategories(dependenciesArray);
+          // 记录依赖冲突信息
+          await generateConflict();
+        }
       } catch (err) {
         reject(err);
       }
@@ -70,9 +76,9 @@ function main(depth: number): Promise<string> {
   });
 }
 
-async function runAnalysis(depth: number): Promise<void> {
+async function runAnalysis(depth: number, jsonFilePath: string): Promise<void> {
   try {
-    await main(depth);
+    await main(depth, jsonFilePath);
   } catch (err) {
     console.error("处理文件时发生错误:", err);
   }
@@ -89,8 +95,22 @@ async function promiseWriteFile<T>(
   fileName: string,
   data: T | object
 ): Promise<string> {
-  let url: string = path.join(__dirname, "data", `${fileName}.json`);
+  let url: string = '';
+  if (fileName === 'dependency' && saveUrl !== 'default') {
+    // 判断输入的路径是相对路径还是绝对路径
+    const pathRegex = /^(\/|[A-Za-z]:\\)/;
+    if (pathRegex.test(saveUrl))
+      url = saveUrl;
+    else
+      url = path.resolve(process.cwd(), saveUrl);
+  }
+  else
+    url = path.join(__dirname, "data");
   return new Promise<string>((resolve, reject) => {
+    if (!fs.existsSync(url)) {
+      fs.mkdirSync(url, { recursive: true });
+    }
+    url = path.join(url, `${fileName}.json`);
     fs.writeFile(url, JSON.stringify(data), (err) => {
       if (err) {
         reject(err);
@@ -105,18 +125,19 @@ async function promiseWriteFile<T>(
  * 递归分析依赖信息
  * @param {Array} keys - 包含直接依赖键名信息的数组
  */
-async function generateAnalysis(keys: string[], depth: number): Promise<void> {
+async function generateAnalysis(keys: string[]): Promise<void> {
   let resObj: PackageJsonType = {};
   keys.forEach((item) => {
     isVisit = {};
-    resObj[item] = dfs(item, item, depth);
+    resObj[item] = dfs(item, item, 1);
   });
   await promiseWriteFile<PackageJsonType>("dependency", resObj);
 }
 
 /**
  * 深度优先搜索，生成依赖关系图
- * @param {string} nowPackageName - 根包名
+ * @param {string} rootPackageName - 根包名
+ * @param {string} nowPackageName - 当前包名
  * @param {number} depth - 深度
  * @param {string} prefix - 前缀
  * @returns {object} - 依赖关系对象
@@ -143,7 +164,7 @@ function dfs(
     packageName = nowPackageName;
   }
 
-  // 处理循环引用的情况
+  // TODO:处理循环引用的情况
   if (isVisit[packageName]) {
     return {
       packageName,
@@ -173,9 +194,9 @@ function dfs(
   // 递归检索依赖关系
   if (dependencies) {
     // 限制递归深度
-    if (depth + 1 === maxDepth) {
+    if (depth + 1 > maxDepth) {
       tmpObj.dependencies = "...";
-    } else if (depth + 1 < maxDepth) {
+    } else if (depth + 1 <= maxDepth) {
       tmpObj.dependencies = Object.keys(dependencies).map((item) =>
         dfs(rootPackageName, item, depth + 1, packageName)
       );
@@ -186,6 +207,7 @@ function dfs(
 /**
  * 生成 Echarts 所需的 Nodes 与 Links 数据格式
  */
+// TODO: 去重
 async function generateNodeInfo(): Promise<void> {
   let nodesInfo: (NodesInfoItem | undefined)[] = Object.keys(packages).map(
     (item) => {

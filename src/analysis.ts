@@ -207,11 +207,11 @@ function dfs(
 /**
  * 生成 Echarts 所需的 Nodes 与 Links 数据格式
  */
-// TODO: 去重
 async function generateNodeInfo(): Promise<void> {
+  // 添加额外信息以便前端渲染
   let nodesInfo: (NodesInfoItem | undefined)[] = Object.keys(packages).map(
     (item) => {
-      let size = thisMaxDepth - packages[item].depth + 1 || 2;
+      let size = Math.max(thisMaxDepth, 5) - packages[item].depth + 1 || 2;
       if (item)
         return {
           name: item,
@@ -222,7 +222,14 @@ async function generateNodeInfo(): Promise<void> {
     }
   );
   await promiseWriteFile<NodesInfoItem[]>("nodesInfo", nodesInfo.slice(1));
-  await promiseWriteFile<LinksInfoItem[]>("linksInfo", linksInfo);
+  // 去除重复的边避免影响循环依赖的判断
+  const linksInfoUnique = linksInfo.reduce((acc: LinksInfoItem[], obj) => {
+    const isDuplicate = acc.some(item => item.source === obj.source && item.target === obj.target);
+    if (!isDuplicate)
+      acc.push(obj);
+    return acc;
+  }, []);
+  await promiseWriteFile<LinksInfoItem[]>("linksInfo", linksInfoUnique);
 }
 /**
  * 生成 Echarts 所需的 categories

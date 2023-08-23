@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import path from "path";
 import fs from "fs";
+import net from "net";
 
 import { Command } from "commander";
 import chalk from "chalk";
@@ -14,7 +15,22 @@ import { exec } from "child_process";
 const baseUrl: string = path.join(__dirname, "src", "data");
 
 // 定义端口号
-let port: string = "5152";
+let defaultPort: number = 5152;
+
+// 分配可用port
+function findAvailablePort(port: number, callback: (port: number) => void) {
+  const server = net.createServer();
+
+  server.listen(port, () => {
+    server.close(() => {
+      callback(port);
+    });
+  });
+
+  server.on("error", () => {
+    findAvailablePort(port + 1, callback);
+  });
+}
 
 // 创建命令行参数对象
 const program: Command = new Command();
@@ -27,32 +43,42 @@ program
     // 获取深度
     const depth = options.depth || 9999;
     // 获取json文件路径
-    const jsonFilePath = options.json || 'default';
-    // 
+    const jsonFilePath = options.json || "default";
+    //
     if (depth === true || jsonFilePath === true) {
-      console.error('请输入正确的参数');
+      console.error("请输入正确的参数");
       return;
     }
     // 执行依赖分析
     await runAnalysis(depth, jsonFilePath);
     // 如果输入了 jsonFilePath 就打开对应目录
-    if (jsonFilePath !== 'default') {
+    if (jsonFilePath !== "default") {
       exec(`start ${jsonFilePath}`, (err) => {
-        if (err) { console.error('Failed to save:', err); return; }
-      })
-    } else {
-      // 启动服务器
-      const serverInstance: Server<
-        typeof IncomingMessage,
-        typeof ServerResponse
-      > = server.listen(port, () => {
-        console.log(getBeautifulMsg());
+        if (err) {
+          console.error("Failed to save:", err);
+          return;
+        }
       });
+    } else {
+      //服务区器实例
+      let serverInstance: Server<typeof IncomingMessage, typeof ServerResponse>;
 
-      // 打开渲染后的网页
-      exec(`start http://localhost:${port}`, (err) => {
-        if (err) { console.error('Failed to open:', err); return; }
-      })
+      // 分配可用port
+      findAvailablePort(defaultPort, (port: number) => {
+        // 没被占用的port
+        defaultPort = port;
+        // 启动服务器
+        serverInstance = server.listen(port, () => {
+          // 打开渲染后的网页
+          exec(`start http://localhost:${defaultPort}`, (err) => {
+            if (err) {
+              console.error("Failed to open:", err);
+              return;
+            }
+          });
+          console.log(getBeautifulMsg());
+        });
+      });
 
       // 监听 Ctrl+C 退出事件
       process.on("SIGINT", () => {
@@ -75,8 +101,8 @@ function getBeautifulMsg(): string {
   const message: string = `
     Serving!
     
-    - Local:    ${chalk.blue(`http://localhost:${port}`)}
-    - Network:  ${chalk.blue(`http://192.168.10.10:${port}`)}
+    - Local:    ${chalk.blue(`http://localhost:${defaultPort}`)}
+    - Network:  ${chalk.blue(`http://192.168.10.10:${defaultPort}`)}
     
     Copied local address to clipboard!
     `;

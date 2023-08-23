@@ -15,7 +15,7 @@ let packages: PackageJsonType; // 所有依赖包信息
 let conflictPackages: PackageJsonType = {}; // 冲突包信息
 let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
 let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
-var circleInfo: LinksInfoItem[] = [];// 记录循环依赖
+var circleInfo: string[] = [];// 记录循环依赖
 let thisMaxDepth: number = -1;
 var maxDepth: number = 9999;
 var saveUrl: string = 'default';
@@ -141,16 +141,22 @@ async function generateAnalysis(keys: string[]): Promise<void> {
  * @param {string} nowPackageName - 当前包名
  * @param {number} depth - 深度
  * @param {string} prefix - 前缀
+ * @param {string[]} prefixDep - 前缀依赖
  * @returns {object} - 依赖关系对象
  */
 function dfs(
   rootPackageName: string,
   nowPackageName: string,
   depth: number,
-  prefix: string = "NotFound"
+  prefix: string = "NotFound",
+  prefixDependency: string[] = []
 ): { conflict: boolean } | tmpObjType {
-  // 先查找前缀的node_modules目录中是否存在依赖
+  // 判断循环引用
+  if (prefixDependency.indexOf(nowPackageName) !== -1) {
+    circleInfo.push([...prefixDependency, nowPackageName].join(' ->'));
+  }
 
+  // 先查找前缀的node_modules目录中是否存在依赖
   let prefixArr: string[] = prefix.split('/node_modules/');
   let payload: string = '';
   let checkPackage: any = packages?.[payload];
@@ -179,14 +185,13 @@ function dfs(
 
   // 记录依赖关系
   if (prefix !== "NotFound") {
-
     linksInfo.push({
       source: prefix,
       target: packageName,
     });
   }
 
-  // TODO:处理循环引用的情况
+  // 处理已经访问过的情况
   if (isVisit[packageName]) {
     return {
       packageName,
@@ -214,7 +219,7 @@ function dfs(
       tmpObj.dependencies = "...";
     } else if (depth + 1 <= maxDepth) {
       tmpObj.dependencies = Object.keys(dependencies).map((item) =>
-        dfs(rootPackageName, item, depth + 1, packageName)
+        dfs(rootPackageName, item, depth + 1, packageName, [...prefixDependency, packageName])
       );
     }
   }
@@ -227,7 +232,7 @@ async function generateNodeInfo(): Promise<void> {
   // 添加额外信息以便前端渲染
   let nodesInfo: (NodesInfoItem | undefined)[] = Object.keys(packages).map(
     (item) => {
-      let size = Math.max(thisMaxDepth, 5) - packages[item].depth + 1 || 2;
+      let size = 10 - packages[item].depth + 1 || 2;
       if (item)
         return {
           name: item,
@@ -241,11 +246,8 @@ async function generateNodeInfo(): Promise<void> {
   // 去除重复的边避免影响循环依赖的判断
   const linksInfoUnique = linksInfo.reduce((acc: LinksInfoItem[], obj) => {
     const isDuplicate = acc.some(item => item.source === obj.source && item.target === obj.target);
-    const isCircle = acc.some(item => item.target === obj.source && item.source === obj.target);
     if (!isDuplicate)
       acc.push(obj);
-    if (isCircle)
-      circleInfo.push(obj);
     return acc;
   }, []);
   await promiseWriteFile<LinksInfoItem[]>("linksInfo", linksInfoUnique);

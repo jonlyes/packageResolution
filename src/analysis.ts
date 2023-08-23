@@ -149,19 +149,40 @@ function dfs(
   prefix: string = "NotFound"
 ): { conflict: boolean } | tmpObjType {
   // 先查找前缀的node_modules目录中是否存在依赖
-  let payload: string = `${prefix}/node_modules/${nowPackageName}`;
+
+  let prefixArr: string[] = prefix.split('/node_modules/');
+  let payload: string = '';
   let checkPackage: any = packages?.[payload];
   let packageName: string = payload;
+  let isConflict: boolean = false;
 
-  // 存在依赖冲突
-  if (checkPackage) {
-    conflictPackages[nowPackageName] = conflictPackages[nowPackageName] || {};
-    conflictPackages[nowPackageName][checkPackage.version] =
-      conflictPackages[nowPackageName][checkPackage.version] || [];
-    conflictPackages[nowPackageName][checkPackage.version].push(prefix);
-  } else {
+  for (let i = prefixArr.length - 1; i >= 0; i--) {
+    payload = [...prefixArr.slice(0, i + 1), nowPackageName].join('/node_modules/');
+    checkPackage = packages?.[payload];
+    packageName = payload;
+    // console.log(payload);
+    // 存在依赖冲突
+    if (checkPackage) {
+      conflictPackages[nowPackageName] = conflictPackages[nowPackageName] || {};
+      conflictPackages[nowPackageName][checkPackage.version] =
+        conflictPackages[nowPackageName][checkPackage.version] || [];
+      conflictPackages[nowPackageName][checkPackage.version].push(prefix);
+      isConflict = true;
+      break;
+    }
+  }
+  if (!isConflict) {
     checkPackage = packages?.[nowPackageName];
     packageName = nowPackageName;
+  }
+
+  // 记录依赖关系
+  if (prefix !== "NotFound") {
+
+    linksInfo.push({
+      source: prefix,
+      target: packageName,
+    });
   }
 
   // TODO:处理循环引用的情况
@@ -181,12 +202,6 @@ function dfs(
   packages[packageName].depth = depth; // 记录包的最小深度
   thisMaxDepth = Math.max(thisMaxDepth, depth); // 统计最大深度,便于计算可视化后的图形大小
 
-  // 记录依赖关系
-  if (prefix !== "NotFound")
-    linksInfo.push({
-      source: prefix,
-      target: packageName,
-    });
 
   let { version, dependencies } = checkPackage || {};
   let tmpObj: tmpObjType = { packageName, version, depth, dependencies: [] };

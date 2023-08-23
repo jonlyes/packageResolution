@@ -49,6 +49,7 @@ program
         console.log(getBeautifulMsg());
       });
 
+      // 打开渲染后的网页
       exec(`start http://localhost:${port}`, (err) => {
         if (err) { console.error('Failed to open:', err); return; }
       })

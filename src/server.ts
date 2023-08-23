@@ -1,36 +1,52 @@
-import express, { Express, Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-
-const app: Express = express();
-
-// 首页
-app.get("/", (req: Request, res: Response) => {
-  let url = path.join(__dirname, "../dist/index.html");
-  fs.readFile(url, (err: NodeJS.ErrnoException | null, data: Buffer) => {
-    if (err) {
-      res.status(500).send("Internal Server Error");
-    } else {
-      res.type("text/html").send(data);
-    }
-  });
-});
+import http from "http";
 // 处理数据请求
-app.get("/src/data/*", (req: Request, res: Response) => {
-  let url: string = path.join(__dirname, "data", req.params[0]);
-  fs.readFile(url, (err: NodeJS.ErrnoException | null, data: Buffer) => {
+const server = http.createServer();
+server.on("request", (req, res) => {
+  // 普通文件
+  let pathName: string = path.join(__dirname, "../dist", req.url!);
+  // 首页
+  if (req.url === "/") pathName = path.join(__dirname, "../dist/index.html");
+  // json数据
+  if (getContentType(req.url!) === "application/json") {
+    pathName = `.${req.url!}`;
+  }
+  fs.readFile(pathName, (err, data) => {
     if (err) {
-      res.status(500).send("Internal Server Error");
+      console.log(err);
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not Found");
     } else {
-      res.type("application/json").send(data);
+      res.writeHead(200, { "Content-Type": getContentType(pathName) });
+      res.end(data);
     }
   });
 });
-// 设置静态资源路径
-app.use(express.static(path.join(__dirname, "../dist")));
-// 其他情况处理
-app.use((req: Request, res: Response) => {
-  res.status(404).send("Page Not Found");
-});
 
-export default app;
+/**
+ * 判断请求文件类型
+ * @param filePath 文件地址
+ * @returns 文件类型
+ */
+function getContentType(filePath: string) {
+  const extname = path.extname(filePath).toLowerCase();
+  switch (extname) {
+    case ".html":
+      return "text/html";
+    case ".css":
+      return "text/css";
+    case ".js":
+      return "text/javascript";
+    case ".json":
+      return "application/json";
+    case ".png":
+      return "image/png";
+    case ".jpg":
+    case ".jpeg":
+      return "image/jpeg";
+    default:
+      return "application/octet-stream";
+  }
+}
+export default server;

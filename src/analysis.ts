@@ -15,6 +15,7 @@ let packages: PackageJsonType; // 所有依赖包信息
 let conflictPackages: PackageJsonType = {}; // 冲突包信息
 let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
 let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
+var circleInfo: LinksInfoItem[] = [];// 记录循环依赖
 let thisMaxDepth: number = -1;
 var maxDepth: number = 9999;
 var saveUrl: string = 'default';
@@ -240,8 +241,11 @@ async function generateNodeInfo(): Promise<void> {
   // 去除重复的边避免影响循环依赖的判断
   const linksInfoUnique = linksInfo.reduce((acc: LinksInfoItem[], obj) => {
     const isDuplicate = acc.some(item => item.source === obj.source && item.target === obj.target);
+    const isCircle = acc.some(item => item.target === obj.source && item.source === obj.target);
     if (!isDuplicate)
       acc.push(obj);
+    if (isCircle)
+      circleInfo.push(obj);
     return acc;
   }, []);
   await promiseWriteFile<LinksInfoItem[]>("linksInfo", linksInfoUnique);
@@ -266,7 +270,7 @@ async function generateConflict(): Promise<void> {
   Object.keys(conflictPackages).forEach((item) => {
     conflictPackages[item].rootVersion = packages[item]?.version;
   });
-  await promiseWriteFile<PackageJsonType>("conflict", conflictPackages);
+  await promiseWriteFile<PackageJsonType>("report", { conflict: conflictPackages, circle: circleInfo });
 }
 
 export { runAnalysis };

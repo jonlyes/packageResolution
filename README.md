@@ -1,8 +1,8 @@
-# package-analyze-tool npm包分析工具
+# npm包分析工具
 
 ## 🌟 介绍
 
-npm包分析工具用于从`package.json`出发，递归遍历所有 `node_modules` 中的`package.json` ，生成模块依赖关系图。
+`package-analyze-tool`用于从`package.json`出发，递归遍历所有 `node_modules` 中的`package.json` ，生成模块依赖关系图。
 
 ## 🎉 开始使用
 

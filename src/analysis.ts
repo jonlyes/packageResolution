@@ -238,7 +238,7 @@ async function generateNodeInfo(): Promise<void> {
           name: item,
           value: `@${packages[item].version}`,
           category: packages[item].category || "alone",
-          symbolSize: Math.pow(1.32, size),
+          symbolSize: Math.pow(1.414, size),
         };
     }
   );

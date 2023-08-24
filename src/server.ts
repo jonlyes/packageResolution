@@ -10,7 +10,7 @@ server.on("request", (req, res) => {
   if (req.url === "/") pathName = path.join(__dirname, "../dist/index.html");
   // json数据
   if (getContentType(req.url!) === "application/json") {
-    pathName = `.${req.url!}`;
+    pathName = path.join(__dirname, req.url!.replace("/src/data/", "data/"));
   }
   fs.readFile(pathName, (err, data) => {
     if (err) {

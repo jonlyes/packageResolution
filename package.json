@@ -1,6 +1,6 @@
 {
   "name": "analyze-tool",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Analyze the dependency relationships in package-lock.json",
   "main": "main.js",
   "scripts": {

@@ -14,7 +14,7 @@
   "files": [
     "dist",
     "src/**/*.js",
-    "index.js"
+    "main.js"
   ],
   "bin": {
     "analyze-cli": "main.js"

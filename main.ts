@@ -4,8 +4,6 @@ import fs from "fs";
 import net from "net";
 
 import { Command } from "commander";
-import chalk from "chalk";
-import boxen from "boxen";
 import server from "./src/server";
 import { Server, IncomingMessage, ServerResponse } from "http";
 import { runAnalysis } from "./src/analysis";
@@ -76,7 +74,7 @@ program
               return;
             }
           });
-          console.log(getBeautifulMsg());
+          console.log("分析完成!");
         });
       });
 
@@ -97,23 +95,23 @@ program
   });
 
 // 获取消息
-function getBeautifulMsg(): string {
-  const message: string = `
-    Serving!
-    
-    - Local:    ${chalk.blue(`http://localhost:${defaultPort}`)}
-    - Network:  ${chalk.blue(`http://192.168.10.10:${defaultPort}`)}
-    
-    Copied local address to clipboard!
-    `;
-  const boxedMessage: string = boxen(message, {
-    padding: 1,
-    margin: 1,
-    borderStyle: "round",
-    borderColor: "green",
-  });
-  return boxedMessage;
-}
+// function getBeautifulMsg(): string {
+//   const message: string = `
+//     Serving!
+
+//     - Local:    ${chalk.blue(`http://localhost:${defaultPort}`)}
+//     - Network:  ${chalk.blue(`http://192.168.10.10:${defaultPort}`)}
+
+//     Copied local address to clipboard!
+//     `;
+//   const boxedMessage: string = boxen(message, {
+//     padding: 1,
+//     margin: 1,
+//     borderStyle: "round",
+//     borderColor: "green",
+//   });
+//   return boxedMessage;
+// }
 
 // 解析命令行参数
 program.parse(process.argv);

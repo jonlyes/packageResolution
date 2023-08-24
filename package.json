@@ -5,19 +5,19 @@
   "main": "main.js",
   "scripts": {
     "dev": "ts-node main.ts",
-    "build": "tsc",
+    "build": "ts-node build.ts",
     "prepublishOnly": "npm run build",
     "prepare": "husky install",
     "test": "jest",
     "test-c": "jest --coverage"
   },
   "files": [
-    "dist",
+    "public",
     "src/**/*.js",
     "main.js"
   ],
   "bin": {
-    "analyze-cli": "main.js"
+    "analyze-cli": "dist/main.js"
   },
   "keywords": [],
   "author": "",

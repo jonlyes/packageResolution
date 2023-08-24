@@ -6,11 +6,13 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist"
   },
   "exclude": [
     "node_modules",
-    "dist",
+    "build.ts",
+    "public",
     "analyze.test.ts"
   ]
 }

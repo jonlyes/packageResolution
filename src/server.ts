@@ -5,9 +5,9 @@ import http from "http";
 const server = http.createServer();
 server.on("request", (req, res) => {
   // 普通文件
-  let pathName: string = path.join(__dirname, "../dist", req.url!);
+  let pathName: string = path.join(__dirname, "../public", req.url!);
   // 首页
-  if (req.url === "/") pathName = path.join(__dirname, "../dist/index.html");
+  if (req.url === "/") pathName = path.join(__dirname, "../public/index.html");
   // json数据
   if (getContentType(req.url!) === "application/json") {
     pathName = path.join(__dirname, req.url!.replace("/src/data/", "data/"));

@@ -15,10 +15,10 @@ let packages: PackageJsonType; // 所有依赖包信息
 let conflictPackages: PackageJsonType = {}; // 冲突包信息
 let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
 let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
-var circleInfo: string[] = [];// 记录循环依赖
+let circleInfo: string[] = [];// 记录循环依赖
 let thisMaxDepth: number = -1;
-var maxDepth: number = 9999;
-var saveUrl: string = 'default';
+let maxDepth: number = 9999;
+let saveUrl: string = 'default';
 
 // 流式读取文件并处理
 function main(depth: number, jsonFilePath: string): Promise<string> {
@@ -238,7 +238,7 @@ async function generateNodeInfo(): Promise<void> {
           name: item,
           value: `@${packages[item].version}`,
           category: packages[item].category || "alone",
-          symbolSize: Math.pow(1.414, size),
+          symbolSize: Math.pow(1.32, size),
         };
     }
   );

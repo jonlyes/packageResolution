@@ -1,7 +1,7 @@
-var myChart = echarts.init(document.getElementById('main'), 'macarons');
+const myChart = echarts.init(document.getElementById('main'), 'macarons');
 
 // 监听resize， 重新渲染echarts
-window.addEventListener('resize',(e)=>{
+window.addEventListener('resize', (e) => {
     myChart.resize()
 })
 
@@ -51,8 +51,8 @@ async function renderEcharts() {
         node.label = {
             show: node.symbolSize > 3,
             formatter: (params) => {
-                var label = params.name;
-                var maxLength = 6;
+                let label = params.name;
+                let maxLength = 6;
                 return label.length > maxLength ? `${label.substring(0, maxLength)}...` : label;
             }
         };

@@ -11,8 +11,8 @@ interface IsVisitType {
   [key: string]: boolean;
 }
 
-interface DirectDependenciesType{
-  [key:string]:string
+interface DirectDependenciesType {
+  [key: string]: string;
 }
 
 interface tmpObjType {
@@ -26,10 +26,18 @@ interface categoriesItem {
   name: string;
 }
 
-interface NodesInfoItem{
-  name:string,
-  value:string,
-  category:string,
-  symbolSize:number
+interface NodesInfoItem {
+  name: string;
+  value: string;
+  category: string;
+  symbolSize: number;
 }
-export type { LinksInfoItem, PackageJsonType, IsVisitType,DirectDependenciesType,tmpObjType, categoriesItem,NodesInfoItem };
+export type {
+  LinksInfoItem,
+  PackageJsonType,
+  IsVisitType,
+  DirectDependenciesType,
+  tmpObjType,
+  categoriesItem,
+  NodesInfoItem,
+};

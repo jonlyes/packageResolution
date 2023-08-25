@@ -14,7 +14,6 @@ server.on("request", (req, res) => {
   }
   fs.readFile(pathName, (err, data) => {
     if (err) {
-      if (err) {
       if (getContentType(req.url!) === "application/octet-stream") {
         res.writeHead(400, { "Content-Type": "text/plain" });
         res.end("服务器无法处理该类型文件");

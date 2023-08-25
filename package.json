@@ -1,6 +1,6 @@
 {
   "name": "analyze-tool",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Analyze the dependency relationships in package-lock.json",
   "main": "main.js",
   "scripts": {
@@ -47,7 +47,9 @@
     "typescript": "^5.1.6"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "*.{js,css,md}": "prettier --write"
+    "*.ts": [
+      "eslint . --ext .ts",
+      "prettier --write"
+    ]
   }
 }

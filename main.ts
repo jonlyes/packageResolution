@@ -51,7 +51,7 @@ program
     await runAnalysis(depth, jsonFilePath);
     // 如果输入了 jsonFilePath 就打开对应目录
     if (jsonFilePath !== "default") {
-      exec(`start ${jsonFilePath.replace(/\//g, '\\')}`, (err) => {
+      exec(`start ${jsonFilePath.replace(/\//g, "\\")}`, (err) => {
         if (err) {
           console.error("Failed to save:", err);
           return;

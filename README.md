@@ -67,7 +67,7 @@ analyze-cli analyze --json [file-path]
   │
   └───src
   │   │   analysis.ts         // 分析依赖并生成json数据
-  │   │   server.ts           // 启动Express服务
+  │   │   server.ts           // 启动后台服务
   │   │   type.ts             // typescript类型限制处理
   │   │
   │   └───data                // 临时存放生成的json数据 

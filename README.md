@@ -59,8 +59,8 @@ analyze-cli analyze --json [file-path]
   │   │   index.html          // 前端可视化基本文件
   │   │
   │   └───js
-  │           axios.min.js
-  │           echarts.min.js
+  │           axios.js        // 原生http封装axios
+  │           echarts.min.js  // echarts库
   │           macarons.js     // Eaharts 主题
   │           renderEcharts.js// 前端渲染主文件
   │           renderReport.js // 分析报告文件

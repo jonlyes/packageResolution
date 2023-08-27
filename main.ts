@@ -15,6 +15,9 @@ const baseUrl: string = path.join(__dirname, "src", "data");
 // 定义端口号
 let defaultPort: number = 5152;
 
+// 判断当前系统
+const commandName = process.platform === "win32" ? "start" : "open";
+
 // 分配可用port
 function findAvailablePort(port: number, callback: (port: number) => void) {
   const server = net.createServer();
@@ -68,7 +71,7 @@ program
         // 启动服务器
         serverInstance = server.listen(port, () => {
           // 打开渲染后的网页
-          exec(`start http://localhost:${defaultPort}`, (err) => {
+          exec(`${commandName} http://localhost:${defaultPort}`, (err) => {
             if (err) {
               console.error("Failed to open:", err);
               return;

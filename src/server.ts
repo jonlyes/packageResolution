@@ -14,7 +14,11 @@ server.on("request", (req, res) => {
   }
   fs.readFile(pathName, (err, data) => {
     if (err) {
-      console.log(err);
+      if (getContentType(req.url!) === "application/octet-stream") {
+        res.writeHead(400, { "Content-Type": "text/plain" });
+        res.end("服务器无法处理该类型文件");
+        return;
+      }
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end("Not Found");
     } else {
@@ -45,6 +49,8 @@ function getContentType(filePath: string) {
     case ".jpg":
     case ".jpeg":
       return "image/jpeg";
+    case ".ico":
+      return "image/vnd.microsoft.icon";
     default:
       return "application/octet-stream";
   }

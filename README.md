@@ -47,9 +47,15 @@ analyze-cli analyze --json [file-path]
 
 ```
   │   main.ts                 // 入口函数, 用于处理命令接收参数
+  │   .eslintgrnore           // eslint忽略配置文件
+  │   .eslintrc.json          // eslint代码规范配置文件
+  │   .prettierr.json         // 代码格式化配置文件
+  │   analyze.test.ts         // jest测试代码文件
+  │   build.ts                // 编译ts到dist，public文件复制到dist
+  │   jest.config.js          // jest配置文件
   │   package.json            // 项目配置信息
   │
-  ├───dist
+  ├───public
   │   │   index.html          // 前端可视化基本文件
   │   │
   │   └───js
@@ -60,11 +66,13 @@ analyze-cli analyze --json [file-path]
   │           renderReport.js // 分析报告文件
   │
   └───src
-   │   analysis.ts         // 分析依赖并生成json数据
-   │   server.ts           // 启动Express服务
-   │   type.ts             // typescript类型限制处理
-   │
-   └───data                // 临时存放生成的json数据
+  │   │   analysis.ts         // 分析依赖并生成json数据
+  │   │   server.ts           // 启动后台服务
+  │   │   type.ts             // typescript类型限制处理
+  │   │
+  │   └───data                // 临时存放生成的json数据 
+  │
+  └───dist                    // build之后存放的文件
 ```
 
 ## 🎨 Demo 展示

@@ -1,6 +1,6 @@
 {
   "name": "analyze-tool",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Analyze the dependency relationships in package-lock.json",
   "main": "main.js",
   "scripts": {
@@ -9,7 +9,9 @@
     "prepublishOnly": "npm run build",
     "prepare": "husky install",
     "test": "jest",
-    "test-c": "jest --coverage"
+    "test-c": "jest --coverage",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"**/*.+(ts)\""
   },
   "files": [
     "public",
@@ -19,7 +21,12 @@
   "bin": {
     "analyze-cli": "dist/main.js"
   },
-  "keywords": [],
+  "keywords": [
+    "package",
+    "analyze",
+    "tool",
+    "package analyze"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -40,7 +47,9 @@
     "typescript": "^5.1.6"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "*.{js,css,md}": "prettier --write"
+    "*.ts": [
+      "eslint . --ext .ts",
+      "prettier --write"
+    ]
   }
 }

@@ -15,10 +15,10 @@ let packages: PackageJsonType; // 所有依赖包信息
 let conflictPackages: PackageJsonType = {}; // 冲突包信息
 let isVisit: IsVisitType; // 访问标记,用于处理循环依赖
 let linksInfo: LinksInfoItem[] = []; // 记录依赖关系
-let circleInfo: string[] = [];// 记录循环依赖
+let circleInfo: string[] = []; // 记录循环依赖
 let thisMaxDepth: number = -1;
 let maxDepth: number = 9999;
-let saveUrl: string = 'default';
+let saveUrl: string = "default";
 
 // 流式读取文件并处理
 function main(depth: number, jsonFilePath: string): Promise<string> {
@@ -58,7 +58,7 @@ function main(depth: number, jsonFilePath: string): Promise<string> {
 
         // 递归分析依赖
         await generateAnalysis(dependenciesArray);
-        if (saveUrl === 'default') {
+        if (saveUrl === "default") {
           // 生成节点相关信息
           await generateNodeInfo();
           // 生成类别信息
@@ -96,17 +96,13 @@ async function promiseWriteFile<T>(
   fileName: string,
   data: T | object
 ): Promise<string> {
-  let url: string = '';
-  if (fileName === 'dependency' && saveUrl !== 'default') {
+  let url: string = "";
+  if (fileName === "dependency" && saveUrl !== "default") {
     // 判断输入的路径是相对路径还是绝对路径
     const pathRegex = /^(\/|[A-Za-z]:\\)/;
-    if (pathRegex.test(saveUrl))
-      url = saveUrl;
-    else
-      url = path.resolve(process.cwd(), saveUrl);
-  }
-  else
-    url = path.join(__dirname, "data");
+    if (pathRegex.test(saveUrl)) url = saveUrl;
+    else url = path.resolve(process.cwd(), saveUrl);
+  } else url = path.join(__dirname, "data");
   return new Promise<string>((resolve, reject) => {
     if (!fs.existsSync(url)) {
       fs.mkdirSync(url, { recursive: true });
@@ -153,18 +149,20 @@ function dfs(
 ): { conflict: boolean } | tmpObjType {
   // 判断循环引用
   if (prefixDependency.indexOf(nowPackageName) !== -1) {
-    circleInfo.push([...prefixDependency, nowPackageName].join(' ->'));
+    circleInfo.push([...prefixDependency, nowPackageName].join(" ->"));
   }
 
   // 先查找前缀的node_modules目录中是否存在依赖
-  let prefixArr: string[] = prefix.split('/node_modules/');
-  let payload: string = '';
+  let prefixArr: string[] = prefix.split("/node_modules/");
+  let payload: string = "";
   let checkPackage: any = packages?.[payload];
   let packageName: string = payload;
   let isConflict: boolean = false;
 
   for (let i = prefixArr.length - 1; i >= 0; i--) {
-    payload = [...prefixArr.slice(0, i + 1), nowPackageName].join('/node_modules/');
+    payload = [...prefixArr.slice(0, i + 1), nowPackageName].join(
+      "/node_modules/"
+    );
     checkPackage = packages?.[payload];
     packageName = payload;
     // console.log(payload);
@@ -208,7 +206,6 @@ function dfs(
   packages[packageName].depth = depth; // 记录包的最小深度
   thisMaxDepth = Math.max(thisMaxDepth, depth); // 统计最大深度,便于计算可视化后的图形大小
 
-
   let { version, dependencies } = checkPackage || {};
   let tmpObj: tmpObjType = { packageName, version, depth, dependencies: [] };
 
@@ -219,7 +216,10 @@ function dfs(
       tmpObj.dependencies = "...";
     } else if (depth + 1 <= maxDepth) {
       tmpObj.dependencies = Object.keys(dependencies).map((item) =>
-        dfs(rootPackageName, item, depth + 1, packageName, [...prefixDependency, packageName])
+        dfs(rootPackageName, item, depth + 1, packageName, [
+          ...prefixDependency,
+          packageName,
+        ])
       );
     }
   }
@@ -245,9 +245,10 @@ async function generateNodeInfo(): Promise<void> {
   await promiseWriteFile<NodesInfoItem[]>("nodesInfo", nodesInfo.slice(1));
   // 去除重复的边避免影响循环依赖的判断
   const linksInfoUnique = linksInfo.reduce((acc: LinksInfoItem[], obj) => {
-    const isDuplicate = acc.some(item => item.source === obj.source && item.target === obj.target);
-    if (!isDuplicate)
-      acc.push(obj);
+    const isDuplicate = acc.some(
+      (item) => item.source === obj.source && item.target === obj.target
+    );
+    if (!isDuplicate) acc.push(obj);
     return acc;
   }, []);
   await promiseWriteFile<LinksInfoItem[]>("linksInfo", linksInfoUnique);
@@ -272,7 +273,10 @@ async function generateConflict(): Promise<void> {
   Object.keys(conflictPackages).forEach((item) => {
     conflictPackages[item].rootVersion = packages[item]?.version;
   });
-  await promiseWriteFile<PackageJsonType>("report", { conflict: conflictPackages, circle: circleInfo });
+  await promiseWriteFile<PackageJsonType>("report", {
+    conflict: conflictPackages,
+    circle: circleInfo,
+  });
 }
 
 export { runAnalysis };

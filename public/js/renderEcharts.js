@@ -20,6 +20,7 @@ async function getData() {
         ];
 
         const [nodesRes, linksRes, categoriesRes] = await Promise.all(promises);
+        console.log(nodesRes,linksRes)
 
         return {
             nodes: nodesRes.data,

@@ -20,8 +20,6 @@ async function getData() {
         ];
 
         const [nodesRes, linksRes, categoriesRes] = await Promise.all(promises);
-        console.log(nodesRes,linksRes)
-
         return {
             nodes: nodesRes.data,
             links: linksRes.data,
@@ -41,10 +39,38 @@ async function getData() {
 3. 冲突依赖以什么样的形式展示.
 4. 根包之间的依赖问题 postCSS 和 vue
 */
-async function renderEcharts() {
+
+let isDev = false //是否为开发依赖
+const switchBtn = document.querySelector(".switch-btn")
+const text = document.querySelector(".text")
+insertText()
+switchBtn.onclick = switchBtnClick
+// 按钮点击切换依赖分析类型
+function switchBtnClick() {
+    isDev = !isDev
+    insertText()
+    renderEcharts(isDev)
+    getReport()
+}
+// 显示依赖类型
+function insertText() {
+    const dependenciesType = isDev 
+    ? "当前分析依赖：开发依赖"
+    : "当前分析依赖：生产依赖"
+    text.textContent = dependenciesType
+}
+/**
+ * 
+ * @param {string} isDev //是否为开发依赖
+ */
+async function renderEcharts(isDev) {
+    const dependenciesType = isDev ? "devDependencies" : "dependencies"
     // 加载数据与loading动画
     myChart.showLoading();
-    const { nodes, links, categories } = await getData();
+    let { nodes, links, categories }  = await getData();
+    nodes = nodes[dependenciesType]
+    links = links[dependenciesType]
+    categories = categories[dependenciesType]
     myChart.hideLoading();
 
     // 处理节点 label 的显示情况
@@ -135,7 +161,6 @@ async function renderEcharts() {
         ]
     };
     myChart.setOption(option);
-
     // 监听图例切换事件
     myChart.on('legendselectchanged', (e) => {
         handleLegendChange(e, categories.length)
@@ -165,4 +190,4 @@ function handleLegendChange(events, totalNum) {
     }
 }
 
-renderEcharts();
+renderEcharts(isDev);

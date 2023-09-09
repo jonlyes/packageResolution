@@ -51,7 +51,8 @@ program
       return;
     }
     // 执行依赖分析
-    await runAnalysis(depth, jsonFilePath);
+    await runAnalysis(depth, jsonFilePath, "dependencies");
+    await runAnalysis(depth, jsonFilePath, "devDependencies");
     // 如果输入了 jsonFilePath 就打开对应目录
     if (jsonFilePath !== "default") {
       exec(`start ${jsonFilePath.replace(/\//g, "\\")}`, (err) => {
@@ -83,7 +84,7 @@ program
 
       // 监听 Ctrl+C 退出事件
       process.on("SIGINT", () => {
-        // 关闭express
+        // 关闭http服务器
         serverInstance.close();
         // 删除临时文件
         const files: string[] = fs.readdirSync(baseUrl);

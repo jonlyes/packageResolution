@@ -2,10 +2,15 @@ const circleDiv = document.getElementById("circle");
 const versionDiv = document.getElementById("multipleVersion");
 
 async function getReport() {
+    //判断分析依赖类型
+    const dependenciesType = isDev ? "devDependencies" : "dependencies"
+    // 切换之前把circleDiv和versionDiv置为空
+    circleDiv.innerHTML = '' 
+    versionDiv.innerHTML = ''
     // 获取report.json文件的数据
     let { data } = await axios.get("../../src/data/report.json");
     // 获取conflict和circle数据
-    let { conflict, circle } = data;
+    let { conflict, circle } = data[dependenciesType];
     // 多版本
     insertDataObj(conflict, versionDiv);
     // 循环
@@ -20,7 +25,6 @@ function insertDataObj(obj, ele) {
             const keys = Object.keys(obj[key]);
             const firstKey = keys[0];
             const firstValue = obj[key][firstKey];
-            console.log(firstValue)
             const secondValue = obj[key][keys[1]]
             tmpEle1.textContent = `包名: ${key}--------版本对应实例: ${firstKey}->${firstValue}--------项目原始版本: ${secondValue}`;
             ele.appendChild(tmpEle1);

@@ -8,6 +8,8 @@ import {
   tmpObjType,
   categoriesItem,
   NodesInfoItem,
+  depType,
+  FileDataType,
 } from "./type";
 
 let plainData: string = ""; // 存储流式读入的数据
@@ -19,6 +21,7 @@ let circleInfo: string[] = []; // 记录循环依赖
 let thisMaxDepth: number = -1;
 let maxDepth: number = 9999;
 let saveUrl: string = "default";
+let dependenciesType: depType = "dependencies"; //分析的依赖类型
 
 // 流式读取文件并处理
 function main(depth: number, jsonFilePath: string): Promise<string> {
@@ -40,7 +43,6 @@ function main(depth: number, jsonFilePath: string): Promise<string> {
     readStream.on("end", async () => {
       // 数据预处理: 解析 json 数据并提取所需信息
       const parseDate = JSON.parse(plainData);
-
       packages = {};
       Object.keys(parseDate.packages).forEach((item) => {
         let newName: string = item.replace("node_modules/", "");
@@ -49,7 +51,7 @@ function main(depth: number, jsonFilePath: string): Promise<string> {
 
       // 提取 packages 空字符串对象中的依赖信息
       let directDependencies: DirectDependenciesType =
-        packages?.[""]?.["dependencies"];
+        packages?.[""]?.[dependenciesType];
       let dependenciesArray: string[] = Object.keys(directDependencies);
 
       try {
@@ -77,7 +79,12 @@ function main(depth: number, jsonFilePath: string): Promise<string> {
   });
 }
 
-async function runAnalysis(depth: number, jsonFilePath: string): Promise<void> {
+async function runAnalysis(
+  depth: number,
+  jsonFilePath: string,
+  IDependenciesType: depType
+): Promise<void> {
+  dependenciesType = IDependenciesType;
   try {
     await main(depth, jsonFilePath);
   } catch (err) {
@@ -104,11 +111,19 @@ async function promiseWriteFile<T>(
     else url = path.resolve(process.cwd(), saveUrl);
   } else url = path.join(__dirname, "data");
   return new Promise<string>((resolve, reject) => {
+    let fileData: FileDataType = {};
     if (!fs.existsSync(url)) {
       fs.mkdirSync(url, { recursive: true });
     }
     url = path.join(url, `${fileName}.json`);
-    fs.writeFile(url, JSON.stringify(data), (err) => {
+    if (fs.existsSync(url)) {
+      // 读取文件
+      fileData = JSON.parse(fs.readFileSync(url, "utf-8"));
+    }
+    // 处理一下data,添加到一个对象中储存，区别devDependencies与dependencies
+    if (dependenciesType === "dependencies") fileData.dependencies = data;
+    if (dependenciesType === "devDependencies") fileData.devDependencies = data;
+    fs.writeFile(url, JSON.stringify(fileData), (err) => {
       if (err) {
         reject(err);
       } else {
@@ -137,7 +152,7 @@ async function generateAnalysis(keys: string[]): Promise<void> {
  * @param {string} nowPackageName - 当前包名
  * @param {number} depth - 深度
  * @param {string} prefix - 前缀
- * @param {string[]} prefixDep - 前缀依赖
+ * @param {string[]} prefixDependency - 前缀依赖
  * @returns {object} - 依赖关系对象
  */
 function dfs(

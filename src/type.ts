@@ -1,3 +1,10 @@
+type depType = "dependencies" | "devDependencies";
+
+interface FileDataType {
+  dependencies?: any;
+  devDependencies?: any;
+}
+
 interface LinksInfoItem {
   source: string;
   target: string;
@@ -40,4 +47,6 @@ export type {
   tmpObjType,
   categoriesItem,
   NodesInfoItem,
+  depType,
+  FileDataType,
 };

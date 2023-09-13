@@ -147,11 +147,6 @@ function dfs(
   prefix: string = "NotFound",
   prefixDependency: string[] = []
 ): { conflict: boolean } | tmpObjType {
-  // 判断循环引用
-  if (prefixDependency.indexOf(nowPackageName) !== -1) {
-    circleInfo.push([...prefixDependency, nowPackageName].join(" ->"));
-  }
-
   // 先查找前缀的node_modules目录中是否存在依赖
   let prefixArr: string[] = prefix.split("/node_modules/");
   let payload: string = "";
@@ -179,6 +174,10 @@ function dfs(
   if (!isConflict) {
     checkPackage = packages?.[nowPackageName];
     packageName = nowPackageName;
+  }
+  // 判断循环引用
+  if (prefixDependency.indexOf(packageName) !== -1) {
+    circleInfo.push([...prefixDependency, packageName].join(" ->"));
   }
 
   // 记录依赖关系

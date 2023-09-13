@@ -1,6 +1,6 @@
 {
-  "name": "analyze-tool",
-  "version": "1.0.4",
+  "name": "analysis-tool",
+  "version": "1.0.3",
   "description": "Analyze the dependency relationships in package-lock.json",
   "main": "main.js",
   "scripts": {
@@ -14,8 +14,7 @@
     "format": "prettier --write \"**/*.+(ts)\""
   },
   "files": [
-    "public",
-    "src/**/*.js",
+    "dist",
     "main.js"
   ],
   "bin": {
